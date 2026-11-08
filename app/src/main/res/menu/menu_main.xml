@@ -3,6 +3,14 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <!-- NC1: Thêm SearchView vào menu để lọc danh sách khi đang gõ -->
+    <item
+        android:id="@+id/action_tim_kiem"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="@string/tim_kiem"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="always|collapseActionView" />
+
     <!-- always: luôn hiện thành biểu tượng trên thanh tiêu đề -->
     <item
         android:id="@+id/action_them"

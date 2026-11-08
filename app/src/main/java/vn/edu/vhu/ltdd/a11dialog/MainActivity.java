@@ -17,6 +17,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -33,9 +34,11 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "A11_231A290127";
 
+    private final List<MonAn> danhSachGoc = new ArrayList<>();
     private final List<MonAn> danhSach = new ArrayList<>();
     private MonAnAdapter adapter;
     private ListView lvMonAn;
+    private String tuKhoaHienTai = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
         TextView tvTrong = findViewById(R.id.tvTrong);
 
         taoDuLieuMau();
+        danhSach.addAll(danhSachGoc);
         adapter = new MonAnAdapter(this, danhSach);
         lvMonAn.setAdapter(adapter);
         lvMonAn.setEmptyView(tvTrong);
@@ -64,10 +68,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void taoDuLieuMau() {
-        danhSach.add(new MonAn("Phở bò tái", "Nước dùng ninh xương 8 giờ", 45000, R.drawable.mon1));
-        danhSach.add(new MonAn("Bún chả Hà Nội", "Chả nướng than hoa", 50000, R.drawable.mon2));
-        danhSach.add(new MonAn("Cơm tấm sườn", "Sườn nướng mật ong", 40000, R.drawable.mon3));
-        danhSach.add(new MonAn("Bánh mì thịt nguội", "Pate nhà làm", 25000, R.drawable.mon4));
+        danhSachGoc.add(new MonAn("Phở bò tái", "Nước dùng ninh xương 8 giờ", 45000, R.drawable.mon1));
+        danhSachGoc.add(new MonAn("Bún chả Hà Nội", "Chả nướng than hoa", 50000, R.drawable.mon2));
+        danhSachGoc.add(new MonAn("Cơm tấm sườn", "Sườn nướng mật ong", 40000, R.drawable.mon3));
+        danhSachGoc.add(new MonAn("Bánh mì thịt nguội", "Pate nhà làm", 25000, R.drawable.mon4));
+    }
+
+    /** NC1: Lọc danh sách theo từ khóa tên món */
+    private void locTheoTen(String tuKhoa) {
+        tuKhoaHienTai = tuKhoa.toLowerCase().trim();
+        danhSach.clear();
+        if (tuKhoaHienTai.isEmpty()) {
+            danhSach.addAll(danhSachGoc);
+        } else {
+            for (MonAn m : danhSachGoc) {
+                if (m.getTen().toLowerCase().contains(tuKhoaHienTai)) {
+                    danhSach.add(m);
+                }
+            }
+        }
+        adapter.notifyDataSetChanged();
     }
 
     // ===================================================================
@@ -77,6 +97,29 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        // NC1: Cấu hình SearchView trên Options Menu
+        MenuItem searchItem = menu.findItem(R.id.action_tim_kiem);
+        if (searchItem != null) {
+            SearchView searchView = (SearchView) searchItem.getActionView();
+            if (searchView != null) {
+                searchView.setQueryHint(getString(R.string.hint_tim_kiem));
+                searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        locTheoTen(query);
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        locTheoTen(newText);
+                        return true;
+                    }
+                });
+            }
+        }
+
         return true;    // true = hiện menu; trả false thì menu không xuất hiện
     }
 
@@ -88,13 +131,13 @@ public class MainActivity extends AppCompatActivity {
             hienDialogThemSua(-1);
             return true;
         } else if (id == R.id.action_sap_xep_ten) {
-            Collections.sort(danhSach, Comparator.comparing(MonAn::getTen));
-            adapter.notifyDataSetChanged();
+            Collections.sort(danhSachGoc, Comparator.comparing(MonAn::getTen));
+            locTheoTen(tuKhoaHienTai);
             Toast.makeText(this, R.string.da_sap_xep_ten, Toast.LENGTH_SHORT).show();
             return true;
         } else if (id == R.id.action_sap_xep_gia) {
-            Collections.sort(danhSach, (a, b) -> Integer.compare(a.getGia(), b.getGia()));
-            adapter.notifyDataSetChanged();
+            Collections.sort(danhSachGoc, (a, b) -> Integer.compare(a.getGia(), b.getGia()));
+            locTheoTen(tuKhoaHienTai);
             Toast.makeText(this, R.string.da_sap_xep_gia, Toast.LENGTH_SHORT).show();
             return true;
         } else if (id == R.id.action_xoa_het) {
@@ -163,21 +206,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void xacNhanXoaHet() {
-        if (danhSach.isEmpty()) {
+        if (danhSachGoc.isEmpty()) {
             Toast.makeText(this, R.string.danh_sach_trong, Toast.LENGTH_SHORT).show();
             return;
         }
         new AlertDialog.Builder(this)
                 .setTitle(R.string.xac_nhan_xoa)
-                .setMessage(getString(R.string.hoi_xoa_het, danhSach.size()))
+                .setMessage(getString(R.string.hoi_xoa_het, danhSachGoc.size()))
                 .setPositiveButton(R.string.xoa_het, (d, w) -> {
-                    List<MonAn> banSaoLuu = new ArrayList<>(danhSach);
+                    List<MonAn> banSaoLuu = new ArrayList<>(danhSachGoc);
+                    danhSachGoc.clear();
                     danhSach.clear();
                     adapter.notifyDataSetChanged();
                     Snackbar.make(lvMonAn, R.string.da_xoa_het, Snackbar.LENGTH_LONG)
                             .setAction(R.string.hoan_tac, v -> {
-                                danhSach.addAll(banSaoLuu);
-                                adapter.notifyDataSetChanged();
+                                danhSachGoc.addAll(banSaoLuu);
+                                locTheoTen(tuKhoaHienTai);
                             })
                             .show();
                 })
@@ -188,13 +232,21 @@ public class MainActivity extends AppCompatActivity {
     /** Xóa một món nhưng cho phép hoàn tác trong vài giây. */
     private void xoaCoHoanTac(int viTri) {
         MonAn daXoa = danhSach.remove(viTri);
+        int viTriGoc = danhSachGoc.indexOf(daXoa);
+        if (viTriGoc != -1) {
+            danhSachGoc.remove(viTriGoc);
+        }
         adapter.notifyDataSetChanged();
         Log.d(TAG, "Đã xóa " + daXoa.getTen() + " tại vị trí " + viTri);
 
         Snackbar.make(lvMonAn, getString(R.string.da_xoa, daXoa.getTen()), Snackbar.LENGTH_LONG)
                 .setAction(R.string.hoan_tac, v -> {
-                    danhSach.add(viTri, daXoa);      // trả về đúng vị trí cũ
-                    adapter.notifyDataSetChanged();
+                    if (viTriGoc != -1 && viTriGoc <= danhSachGoc.size()) {
+                        danhSachGoc.add(viTriGoc, daXoa);
+                    } else {
+                        danhSachGoc.add(daXoa);
+                    }
+                    locTheoTen(tuKhoaHienTai);
                     lvMonAn.smoothScrollToPosition(viTri);
                 })
                 .show();
@@ -251,15 +303,17 @@ public class MainActivity extends AppCompatActivity {
             }
 
             if (themMoi) {
-                danhSach.add(0, new MonAn(ten, moTa, gia, R.drawable.mon1));
+                MonAn monMoi = new MonAn(ten, moTa, gia, R.drawable.mon1);
+                danhSachGoc.add(0, monMoi);
+                locTheoTen(tuKhoaHienTai);
                 lvMonAn.smoothScrollToPosition(0);
             } else {
                 MonAn mon = danhSach.get(viTri);
                 mon.setTen(ten);
                 mon.setMoTa(moTa);
                 mon.setGia(gia);
+                adapter.notifyDataSetChanged();
             }
-            adapter.notifyDataSetChanged();
             dialog.dismiss();   // tự tay đóng khi mọi thứ đã hợp lệ
             Toast.makeText(this, themMoi ? R.string.da_them : R.string.da_sua,
                     Toast.LENGTH_SHORT).show();

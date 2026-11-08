@@ -36,4 +36,8 @@
     <string name="err_ten">Chưa nhập tên món</string>
     <string name="err_gia">Giá phải là số</string>
     <string name="err_gia_duong">Giá phải lớn hơn 0</string>
+
+    <!-- NC1: Tìm kiếm món ăn -->
+    <string name="tim_kiem">Tìm kiếm</string>
+    <string name="hint_tim_kiem">Nhập tên món cần tìm...</string>
 </resources>
