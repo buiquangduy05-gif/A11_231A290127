@@ -1,0 +1,8 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme: dùng Theme.Material3.DayNight để hiển thị ActionBar và Options Menu -->
+    <style name="Base.Theme.A11_231A290127" parent="Theme.Material3.DayNight">
+        <!-- Customize your light theme here. -->
+    </style>
+
+    <style name="Theme.A11_231A290127" parent="Base.Theme.A11_231A290127" />
+</resources>
