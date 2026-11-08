@@ -18,6 +18,12 @@
         android:title="@string/them_mon"
         app:showAsAction="always" />
 
+    <!-- NC2: Dialog chọn mức giá bằng setSingleChoiceItems -->
+    <item
+        android:id="@+id/action_loc_gia"
+        android:title="@string/loc_theo_gia"
+        app:showAsAction="never" />
+
     <!-- never: nằm trong menu ba chấm -->
     <item
         android:id="@+id/action_sap_xep_ten"

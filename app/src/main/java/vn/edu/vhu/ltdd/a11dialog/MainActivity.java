@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private MonAnAdapter adapter;
     private ListView lvMonAn;
     private String tuKhoaHienTai = "";
+    private int mucGiaDaChon = 0; // 0: Tất cả, 1: <30k, 2: 30k-45k, 3: >45k
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,20 +75,56 @@ public class MainActivity extends AppCompatActivity {
         danhSachGoc.add(new MonAn("Bánh mì thịt nguội", "Pate nhà làm", 25000, R.drawable.mon4));
     }
 
-    /** NC1: Lọc danh sách theo từ khóa tên món */
-    private void locTheoTen(String tuKhoa) {
-        tuKhoaHienTai = tuKhoa.toLowerCase().trim();
+    /** NC1 + NC2: Lọc danh sách kết hợp cả từ khóa tên món và mức giá đã chọn */
+    private void locDanhSach() {
         danhSach.clear();
-        if (tuKhoaHienTai.isEmpty()) {
-            danhSach.addAll(danhSachGoc);
-        } else {
-            for (MonAn m : danhSachGoc) {
-                if (m.getTen().toLowerCase().contains(tuKhoaHienTai)) {
-                    danhSach.add(m);
-                }
+        for (MonAn m : danhSachGoc) {
+            boolean thoaTuKhoa = tuKhoaHienTai.isEmpty() ||
+                    m.getTen().toLowerCase().contains(tuKhoaHienTai);
+            boolean thoaGia;
+            switch (mucGiaDaChon) {
+                case 1: // Dưới 30.000 đ
+                    thoaGia = (m.getGia() < 30000);
+                    break;
+                case 2: // Từ 30.000 đ đến 45.000 đ
+                    thoaGia = (m.getGia() >= 30000 && m.getGia() <= 45000);
+                    break;
+                case 3: // Trên 45.000 đ
+                    thoaGia = (m.getGia() > 45000);
+                    break;
+                default: // Tất cả
+                    thoaGia = true;
+                    break;
+            }
+            if (thoaTuKhoa && thoaGia) {
+                danhSach.add(m);
             }
         }
         adapter.notifyDataSetChanged();
+    }
+
+    /** NC2: Hộp thoại chọn mức giá bằng setSingleChoiceItems */
+    private void hienDialogLocGia() {
+        String[] luaChonLabels = {
+                getString(R.string.tat_ca),
+                getString(R.string.gia_duoi_30),
+                getString(R.string.gia_30_45),
+                getString(R.string.gia_tren_45)
+        };
+        final int[] luaChonTam = {mucGiaDaChon};
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.loc_theo_gia)
+                .setSingleChoiceItems(luaChonLabels, mucGiaDaChon, (dialog, which) -> {
+                    luaChonTam[0] = which;
+                })
+                .setPositiveButton(R.string.ap_dung, (dialog, which) -> {
+                    mucGiaDaChon = luaChonTam[0];
+                    locDanhSach();
+                    Toast.makeText(this, R.string.da_loc_gia, Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton(R.string.huy, null)
+                .show();
     }
 
     // ===================================================================
@@ -107,13 +144,15 @@ public class MainActivity extends AppCompatActivity {
                 searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
                     @Override
                     public boolean onQueryTextSubmit(String query) {
-                        locTheoTen(query);
+                        tuKhoaHienTai = query.toLowerCase().trim();
+                        locDanhSach();
                         return true;
                     }
 
                     @Override
                     public boolean onQueryTextChange(String newText) {
-                        locTheoTen(newText);
+                        tuKhoaHienTai = newText.toLowerCase().trim();
+                        locDanhSach();
                         return true;
                     }
                 });
@@ -130,14 +169,17 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_them) {
             hienDialogThemSua(-1);
             return true;
+        } else if (id == R.id.action_loc_gia) {
+            hienDialogLocGia();
+            return true;
         } else if (id == R.id.action_sap_xep_ten) {
             Collections.sort(danhSachGoc, Comparator.comparing(MonAn::getTen));
-            locTheoTen(tuKhoaHienTai);
+            locDanhSach();
             Toast.makeText(this, R.string.da_sap_xep_ten, Toast.LENGTH_SHORT).show();
             return true;
         } else if (id == R.id.action_sap_xep_gia) {
             Collections.sort(danhSachGoc, (a, b) -> Integer.compare(a.getGia(), b.getGia()));
-            locTheoTen(tuKhoaHienTai);
+            locDanhSach();
             Toast.makeText(this, R.string.da_sap_xep_gia, Toast.LENGTH_SHORT).show();
             return true;
         } else if (id == R.id.action_xoa_het) {
@@ -221,7 +263,7 @@ public class MainActivity extends AppCompatActivity {
                     Snackbar.make(lvMonAn, R.string.da_xoa_het, Snackbar.LENGTH_LONG)
                             .setAction(R.string.hoan_tac, v -> {
                                 danhSachGoc.addAll(banSaoLuu);
-                                locTheoTen(tuKhoaHienTai);
+                                locDanhSach();
                             })
                             .show();
                 })
@@ -246,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         danhSachGoc.add(daXoa);
                     }
-                    locTheoTen(tuKhoaHienTai);
+                    locDanhSach();
                     lvMonAn.smoothScrollToPosition(viTri);
                 })
                 .show();
@@ -305,7 +347,7 @@ public class MainActivity extends AppCompatActivity {
             if (themMoi) {
                 MonAn monMoi = new MonAn(ten, moTa, gia, R.drawable.mon1);
                 danhSachGoc.add(0, monMoi);
-                locTheoTen(tuKhoaHienTai);
+                locDanhSach();
                 lvMonAn.smoothScrollToPosition(0);
             } else {
                 MonAn mon = danhSach.get(viTri);

@@ -40,4 +40,13 @@
     <!-- NC1: Tìm kiếm món ăn -->
     <string name="tim_kiem">Tìm kiếm</string>
     <string name="hint_tim_kiem">Nhập tên món cần tìm...</string>
+
+    <!-- NC2: Lọc theo mức giá bằng SingleChoiceDialog -->
+    <string name="loc_theo_gia">Lọc theo mức giá</string>
+    <string name="tat_ca">Tất cả mức giá</string>
+    <string name="gia_duoi_30">Dưới 30.000 đ</string>
+    <string name="gia_30_45">Từ 30.000 đ – 45.000 đ</string>
+    <string name="gia_tren_45">Trên 45.000 đ</string>
+    <string name="ap_dung">Áp dụng</string>
+    <string name="da_loc_gia">Đã áp dụng bộ lọc mức giá</string>
 </resources>
